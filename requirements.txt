@@ -1,0 +1,10 @@
+explainerdashboard==0.3.8.2
+scikit-learn==0.22
+gunicorn==20.1.0
+lightgbm==2.3.1
+joblib==0.14
+seaborn==0.11.2
+numba==0.53
+imbalanced-learn
+
+# conda install --force-reinstall -y -q --name projet7 -c conda-forge --file requirements.txt
