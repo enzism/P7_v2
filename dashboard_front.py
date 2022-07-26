@@ -1,3 +1,4 @@
+# git fonctionne ???????
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -17,13 +18,13 @@ plt.style.use('fivethirtyeight')
 
 @st.cache
 def load_data():
-    z = ZipFile("data/default_risk.zip")
+    z = ZipFile("../P7-master/data/default_risk.zip")
     data = pd.read_csv(z.open('default_risk.csv'), index_col='SK_ID_CURR', encoding='utf-8')
 
-    z = ZipFile("data/X_sample.zip")
+    z = ZipFile("../P7-master/data/X_sample.zip")
     sample = pd.read_csv(z.open('X_sample.csv'), index_col='SK_ID_CURR', encoding='utf-8')
 
-    description = pd.read_csv("data/features_description.csv",
+    description = pd.read_csv("../P7-master/data/features_description.csv",
                               usecols=['Row', 'Description'], index_col=0, encoding='unicode_escape')
 
     target = data.iloc[:, -1:]
