@@ -5,6 +5,7 @@ lightgbm==2.3.1
 joblib==0.14
 seaborn==0.11.2
 numba==0.53
-imbalanced-learn
+imbalanced-learn==0.6.2
+streamlit==1.11.0
 
 # conda install --force-reinstall -y -q --name projet7 -c conda-forge --file requirements.txt
