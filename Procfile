@@ -1,1 +1,1 @@
-web: gunicorn dashboard_back:app
+web: gunicorn dashboard_back:app --preload -b 0.0.0.0:5000
