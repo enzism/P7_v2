@@ -17,13 +17,13 @@ plt.style.use('fivethirtyeight')
 
 @st.cache
 def load_data():
-    z = ZipFile("../P7-master/data/default_risk.zip")
-    data = pd.read_csv(z.open('default_risk.csv'), index_col='SK_ID_CURR', encoding='utf-8')
+    z = ZipFile("data/default_risk.zip")
+    data = pd.read_csv(z.open('default_risk.csv'), encoding='utf-8')
 
-    z = ZipFile("../P7-master/data/X_sample.zip")
-    sample = pd.read_csv(z.open('X_sample.csv'), index_col='SK_ID_CURR', encoding='utf-8')
+    z = ZipFile("data/X_sample.zip")
+    sample = pd.read_csv(z.open('X_sample.csv'), encoding='utf-8')
 
-    description = pd.read_csv("../P7-master/data/features_description.csv",
+    description = pd.read_csv("data/features_description.csv",
                               usecols=['Row', 'Description'], index_col=0, encoding='unicode_escape')
 
     target = data.iloc[:, -1:]
@@ -31,9 +31,9 @@ def load_data():
     return data, sample, target, description
 
 
-def request(API_url, data):
-    request = requests.get(API_url + "?data=" + data)
-    return request.json()
+def request(API_url, id):
+    request = requests.get(API_url + "?id=" + str(id))
+    return request
 
 
 @st.cache(allow_output_mutation=True)
@@ -76,10 +76,10 @@ def load_income_population(sample):
 
 
 @st.cache
-def load_prediction(sample, id, API_URL):
-    score = request(API_URL, sample)
-    print("PREDICTIONNNNNNNN :::::", score)
-    return score
+def load_prediction(API_URL, id):
+    prediction = request(API_URL, id)
+    print("PREDICTIONNNNNNNN :::::", prediction)
+    return prediction
 
 
 @st.cache
@@ -101,12 +101,12 @@ def knn_training(sample):
 def main():
     # Loading data……
     data, sample, target, description = load_data()
-    id_client = sample.index.values
+    id_clients = sample.SK_ID_CURR.values
 
     #######################################
     # SIDEBAR
     #######################################
-    id = st.selectbox('Veuillez choisir l\'identifiant d\'un client:', id_client)
+    id = st.selectbox('Veuillez choisir l\'identifiant d\'un client:', id_clients)
     API_url = "https://openclassrooms-api.herokuapp.com/predict/"
     # Title display
     html_temp = """
@@ -121,7 +121,7 @@ def main():
     st.sidebar.header("**General Info**")
 
     # Loading selectbox
-    chk_id = st.sidebar.selectbox("Client ID", id_client)
+    chk_id = st.sidebar.selectbox("Client ID", id_clients)
 
     # Loading general info
     nb_credits, rev_moy, credits_moy, targets = load_infos_gen(data)
@@ -209,7 +209,8 @@ def main():
 
     # Customer solvability display
     st.header("**Customer file analysis**")
-    prediction = load_prediction(sample, chk_id, API_url)
+    data = sample[sample['SK_ID_CURR'] == id].to_numpy().tolist()
+    prediction = load_prediction(API_url, id)
     st.write("**Default probability : **{:.0f} %".format(round(float(prediction) * 100, 2)))
 
     # Compute decision according to the best threshold
@@ -248,7 +249,7 @@ def main():
     chk_voisins = st.checkbox("Show similar customer files ?")
     if btn_predict:
         data = sample[sample['SK_ID_CURR'] == id].to_numpy().tolist()
-        prediction = request(API_url, data)
+        prediction = load_prediction(API_url, data)
         if prediction['prediction'] == 0:
             st.write('Dossier validé par la banque')
         else:

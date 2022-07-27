@@ -1,20 +1,27 @@
 from fastapi import FastAPI
+from flask import Flask, request, jsonify
 import pickle
 import uvicorn
+import requests
+from dashboard_front import load_data
 
-app = FastAPI()
+app = Flask(__name__)
 
 model = pickle.load(open('model/LGBMClassifier.pkl', 'rb'))
+
 
 @app.get("/")
 def root():
     return {"message": "Loan Prediction"}
 
 @app.get("/predict/")
-def predict(sample):
-    X = sample.iloc[:, :-1]
-    score = model.predict_proba(X[X.index == int(194347)])[:, 1]
-    return score
+def predict():
+    id = requests.get('id')
+    data, sample, target, description = load_data()
+    X = sample[sample['SK_ID_CURR'] == id].to_numpy().tolist()
+    prediction = model.predict(X)
+    return {"message": f"Loan Prediction{prediction}"}
 
 if __name__ == '__main__':
-    uvicorn.run(app, host='127.0.0.1', port=8000)
+    app.run(debug=True)
+    #uvicorn.run(app, host='127.0.0.1', port=8000)
