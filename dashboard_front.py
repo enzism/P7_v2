@@ -3,25 +3,33 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-import pickle
+import json
 import shap
 import plotly.express as px
 from zipfile import ZipFile
 from sklearn.cluster import KMeans
 import requests
+from flask import request
 
 plt.style.use('fivethirtyeight')
 
 
 # sns.set_style('darkgrid')
+def clean(data) :
+    data = str(data)
+    data = data.replace("[[", "(")
+    data = data.replace("]]", ")")
+    data = data.replace(" ", "")
+    return data
+
 
 @st.cache
 def load_data():
     z = ZipFile("data/default_risk.zip")
-    data = pd.read_csv(z.open('default_risk.csv'), encoding='utf-8')
+    data = pd.read_csv(z.open('default_risk.csv'), index_col='SK_ID_CURR', encoding='utf-8')
 
     z = ZipFile("data/X_sample.zip")
-    sample = pd.read_csv(z.open('X_sample.csv'), encoding='utf-8')
+    sample = pd.read_csv(z.open('X_sample.csv'), index_col='SK_ID_CURR',encoding='utf-8')
 
     description = pd.read_csv("data/features_description.csv",
                               usecols=['Row', 'Description'], index_col=0, encoding='unicode_escape')
@@ -32,8 +40,8 @@ def load_data():
 
 
 def request(API_url, id):
-    request = requests.get(API_url + "?id=" + str(id))
-    return request
+    request = requests.get(API_url + "?data=" + str(id))
+    return request.json()
 
 
 @st.cache(allow_output_mutation=True)
@@ -101,13 +109,20 @@ def knn_training(sample):
 def main():
     # Loading data……
     data, sample, target, description = load_data()
-    id_clients = sample.SK_ID_CURR.values
+    id_clients = sample.index.values
 
     #######################################
     # SIDEBAR
     #######################################
     id = st.selectbox('Veuillez choisir l\'identifiant d\'un client:', id_clients)
-    API_url = "https://openclassrooms-api.herokuapp.com/predict/"
+    API_url = "https://openclassrooms-api.herokuapp.com/"
+    local_url = "http://127.0.0.1:5000/"
+    response = load_prediction(local_url, id)
+    prediction = response["prediction"]
+    if prediction == 0:
+        st.write("Loan GRANTED !")
+    else:
+        st.write("Loan DENIED !")
     # Title display
     html_temp = """
     <div style="background-color: tomato; padding:10px; border-radius:10px">
@@ -209,9 +224,6 @@ def main():
 
     # Customer solvability display
     st.header("**Customer file analysis**")
-    data = sample[sample['SK_ID_CURR'] == id].to_numpy().tolist()
-    prediction = load_prediction(API_url, id)
-    st.write("**Default probability : **{:.0f} %".format(round(float(prediction) * 100, 2)))
 
     # Compute decision according to the best threshold
     # if prediction <= xx :
@@ -248,8 +260,7 @@ def main():
     # Similar customer files display
     chk_voisins = st.checkbox("Show similar customer files ?")
     if btn_predict:
-        data = sample[sample['SK_ID_CURR'] == id].to_numpy().tolist()
-        prediction = load_prediction(API_url, data)
+        prediction = load_prediction(local_url, id)
         if prediction['prediction'] == 0:
             st.write('Dossier validé par la banque')
         else:
