@@ -119,7 +119,7 @@ def main():
     data_to_predict = sample[sample.index == int(id)].drop(['TARGET'], axis=1)
     PARAMS = data_to_predict.to_dict('records')
     PARAMS_str = str(PARAMS)
-    response = requests.get(local_url+"?data="+PARAMS_str)
+    response = requests.get(API_url+"?data="+PARAMS_str)
     response = response.json()
     prediction = response["prediction"]
     if prediction == 0.0:
