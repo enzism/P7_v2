@@ -9,7 +9,6 @@ import plotly.express as px
 from zipfile import ZipFile
 from sklearn.cluster import KMeans
 import requests
-from flask import request
 
 plt.style.use('fivethirtyeight')
 
@@ -39,9 +38,9 @@ def load_data():
     return data, sample, target, description
 
 
-def request(API_url, id):
-    request = requests.get(API_url + "?data=" + str(id))
-    return request.json()
+def api_request(API_url, id):
+    response = requests.get(API_url + "?data=" + str(id))
+    return response.json()
 
 
 @st.cache(allow_output_mutation=True)
@@ -85,7 +84,7 @@ def load_income_population(sample):
 
 @st.cache
 def load_prediction(API_URL, id):
-    prediction = request(API_URL, id)
+    prediction = api_request(API_URL, id)
     print("PREDICTIONNNNNNNN :::::", prediction)
     return prediction
 
@@ -117,9 +116,13 @@ def main():
     id = st.selectbox('Veuillez choisir l\'identifiant d\'un client:', id_clients)
     API_url = "https://openclassrooms-api.herokuapp.com/"
     local_url = "http://127.0.0.1:5000/"
-    response = load_prediction(local_url, id)
+    data_to_predict = sample[sample.index == int(id)].drop(['TARGET'], axis=1)
+    PARAMS = data_to_predict.to_dict('records')
+    PARAMS_str = str(PARAMS)
+    response = requests.get(local_url+"?data="+PARAMS_str)
+    response = response.json()
     prediction = response["prediction"]
-    if prediction == 0:
+    if prediction == 0.0:
         st.write("Loan GRANTED !")
     else:
         st.write("Loan DENIED !")
@@ -259,12 +262,12 @@ def main():
 
     # Similar customer files display
     chk_voisins = st.checkbox("Show similar customer files ?")
-    if btn_predict:
-        prediction = load_prediction(local_url, id)
-        if prediction['prediction'] == 0:
-            st.write('Dossier validé par la banque')
-        else:
-            st.write("refused")
+    #if btn_predict:
+    #    prediction = load_prediction(local_url, id)
+    #    if prediction['prediction'] == 0:
+    #        st.write('Dossier validé par la banque')
+    #    else:
+    #        st.write("refused")
     if chk_voisins:
         knn = load_knn(sample)
         st.markdown("<u>List of the 10 files closest to this Customer :</u>", unsafe_allow_html=True)

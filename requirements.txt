@@ -1,11 +1,9 @@
 Cython>=0.28.5
-scikit-learn==0.22
+scikit-learn==1.1.1
+lightgbm==3.3.2
 gunicorn
-lightgbm==2.3.1
 joblib
 seaborn
-numba
-imbalanced-learn
 streamlit
 uvicorn
 plotly
@@ -13,5 +11,4 @@ pandas
 shap
 requests
 matplotlib
-numpy
 flask
