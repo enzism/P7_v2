@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+import urllib.parse
 import matplotlib.pyplot as plt
 import seaborn as sns
 import json
@@ -9,6 +10,8 @@ import plotly.express as px
 from zipfile import ZipFile
 from sklearn.cluster import KMeans
 import requests
+import joblib
+
 
 plt.style.use('fivethirtyeight')
 
@@ -109,23 +112,12 @@ def main():
     # Loading data……
     data, sample, target, description = load_data()
     id_clients = sample.index.values
-
+   #model = joblib.load(open('model/LGBMClassifier.pkl', 'rb'))
     #######################################
     # SIDEBAR
     #######################################
-    id = st.selectbox('Veuillez choisir l\'identifiant d\'un client:', id_clients)
-    API_url = "https://openclassrooms-api.herokuapp.com/"
-    local_url = "http://127.0.0.1:5000/"
-    data_to_predict = sample[sample.index == int(id)].drop(['TARGET'], axis=1)
-    PARAMS = data_to_predict.to_dict('records')
-    PARAMS_str = str(PARAMS)
-    response = requests.get(API_url+"?data="+PARAMS_str)
-    response = response.json()
-    prediction = response["prediction"]
-    if prediction == 0.0:
-        st.write("Loan GRANTED !")
-    else:
-        st.write("Loan DENIED !")
+    API_url = "https://openclassrooms-api.herokuapp.com/predict"
+    local_url = "http://127.0.0.1:5000/predict"
     # Title display
     html_temp = """
     <div style="background-color: tomato; padding:10px; border-radius:10px">
@@ -140,7 +132,16 @@ def main():
 
     # Loading selectbox
     chk_id = st.sidebar.selectbox("Client ID", id_clients)
-
+    data_to_predict = sample[sample.index == int(chk_id)].drop(['TARGET'], axis=1).to_numpy()
+    data_str = str(data_to_predict)
+    data_http = urllib.parse.quote_plus(data_str)
+    response = requests.get(API_url+"?data="+data_http)
+    response = response.json()
+    prediction = response["prediction"]
+    if prediction == 0.0:
+        st.write("Loan GRANTED !")
+    else:
+        st.write("Loan DENIED !")
     # Loading general info
     nb_credits, rev_moy, credits_moy, targets = load_infos_gen(data)
 
@@ -235,7 +236,6 @@ def main():
     #    decision = "<font color='red'>**LOAN REJECTED**</font>"
 
     # st.write("**Decision** *(with threshold xx%)* **: **", decision, unsafe_allow_html=True)
-    btn_predict = st.sidebar.button("Predict")
     st.markdown("<u>Customer Data :</u>", unsafe_allow_html=True)
     st.write(identite_client(data, chk_id))
 
@@ -247,7 +247,7 @@ def main():
         number = st.slider("Pick a number of features…", 0, 20, 5)
 
         fig, ax = plt.subplots(figsize=(10, 10))
-        explainer = shap.TreeExplainer(load_model())
+        explainer = shap.TreeExplainer(model)
         shap_values = explainer.shap_values(X)
         shap.summary_plot(shap_values[0], X, plot_type="bar", max_display=number, color_bar=False, plot_size=(5, 5))
         st.pyplot(fig)
