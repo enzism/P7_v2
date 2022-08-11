@@ -5,12 +5,14 @@ import urllib.parse
 import matplotlib.pyplot as plt
 import seaborn as sns
 import json
+from sklearn.cluster import KMeans
 import shap
 import plotly.express as px
 from zipfile import ZipFile
 from sklearn.cluster import KMeans
 import requests
 import joblib
+from xgboost import XGBClassifier
 
 
 plt.style.use('fivethirtyeight')
@@ -93,11 +95,11 @@ def load_prediction(API_URL, id):
 
 
 @st.cache
-def load_kmeans(sample, id, mdl):
+def load_kmeans(sample, id, mdl,data):
     index = sample[sample.index == int(id)].index.values
     index = index[0]
     data_client = pd.DataFrame(sample.loc[sample.index, :])
-    df_neighbors = pd.DataFrame(knn.fit_predict(data_client), index=data_client.index)
+    df_neighbors = pd.DataFrame(mdl.fit_predict(data_client), index=data_client.index)
     df_neighbors = pd.concat([df_neighbors, data], axis=1)
     return df_neighbors.iloc[:, 1:].sample(10)
 
@@ -112,7 +114,8 @@ def main():
     # Loading data……
     data, sample, target, description = load_data()
     id_clients = sample.index.values
-   #model = joblib.load(open('model/LGBMClassifier.pkl', 'rb'))
+    model = joblib.load(open('model/XGBClassifier.pkl', 'rb')).steps[1][1]
+    import streamlit.components.v1 as components
     #######################################
     # SIDEBAR
     #######################################
@@ -242,14 +245,13 @@ def main():
     # Feature importance / description
     if st.checkbox("Customer ID {:.0f} feature importance ?".format(chk_id)):
         shap.initjs()
-        X = sample.iloc[:, :-1]
-        X = X[X.index == chk_id]
+        X = sample[sample.index == int(chk_id)].drop(['TARGET'], axis=1)
         number = st.slider("Pick a number of features…", 0, 20, 5)
-
+        #model.fit(sample.drop(['TARGET'], axis=1), sample.TARGET)
         fig, ax = plt.subplots(figsize=(10, 10))
         explainer = shap.TreeExplainer(model)
         shap_values = explainer.shap_values(X)
-        shap.summary_plot(shap_values[0], X, plot_type="bar", max_display=number, color_bar=False, plot_size=(5, 5))
+        shap.summary_plot(shap_values, X, plot_type="bar", max_display=number, color_bar=False, plot_size=(5, 5))
         st.pyplot(fig)
 
         if st.checkbox("Need help about feature description ?"):
@@ -271,7 +273,7 @@ def main():
     if chk_voisins:
         knn = load_knn(sample)
         st.markdown("<u>List of the 10 files closest to this Customer :</u>", unsafe_allow_html=True)
-        st.dataframe(load_kmeans(sample, chk_id, knn))
+        st.dataframe(load_kmeans(sample, chk_id, knn, data))
         st.markdown("<i>Target 1 = Customer with default</i>", unsafe_allow_html=True)
     else:
         st.markdown("<i>…</i>", unsafe_allow_html=True)
