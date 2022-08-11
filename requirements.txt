@@ -12,3 +12,5 @@ shap
 requests
 matplotlib
 flask
+numpy==1.22.0
+xgboost
