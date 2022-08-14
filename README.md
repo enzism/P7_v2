@@ -2,6 +2,10 @@
 Parcours Data Science
 by: Enzo Etelbert
 
+## Links : 
+### App : https://enzism-p7-v2-dashboard-front-c14yis.streamlitapp.com
+### Git : https://github.com/enzism/P7_v2
+
 Projet n°7 : "Implémentez un modèle de scoring"
 
 ## Description du projet
