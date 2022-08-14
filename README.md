@@ -1,27 +1,39 @@
-# explainerdashboard via heroku
+# Projet7-Openclassrooms
+Parcours Data Science
 by: Enzo Etelbert
 
-Repo permettant la mise en ligne d'un explainerdashboard
+Projet n°7 : "Implémentez un modèle de scoring"
+
+## Description du projet
+* Supervised learning sur un jeu de données déséquilibré (pénalisation des classes par Sample Weights et SMOTE)
+* Choix d'une métrique adaptée à un problème métier (F Beta Score)
+* Construction d'un modèle de scoring supervisé
+* Mise en place d'une API Flask déployée sur heroku pour appeler le modèle de prédiction 
+* Construction d'un dashboard interactif à destination des gestionnaires de relation client (Streamlit)
+* Utilisation d'un logiciel de versionning : github ou gitflow
+
+# Streamlit dashboard and API via Streamlit share and heroku respectively
+
+
+Repo permettant la mise en ligne d'un dashboard interactif
 
  ## Installation
 
-TODO
+pip install -r requirements.txt
 
 ## 1ere étape: apprentissage
 
-Adapter et lancer training.py
+Adapter et lancer preprocessing.py puis training.py qui sont les codes de préparant les données et entraînant le modèle LGBMClassifier de Microsoft. 
 
-## 2eme étape: Construction de l'explainer
+## 2eme étape: Déploiement de l'API de prédiction
 
-Lancer main.py afin de générer l'explainer. A réadapter également.
+Lancer app.py avec l'url locale ou le déployer sur heroku afin d'y accéder depuis n'importe quel poste en publique.
 
-## 3eme étape: Heroku
+## 3eme étape: Streamlit
 
-Créer un login si ce n'est pas déjà fait sur https://id.heroku.com/login 
+Dashboard intéractif déployé sur streamlit et possédant une connexion via une API heroku (app.py) pour réaliser la prédiction du modèle.
 
-Ensuite créer une nouvelle application en cliquant sur new -> create a new app
-Donner un nom (ici noté $name-app$) et sélectionner Europe
-Ouvrir un terminal et se placer sur le répertoire cbe_app
-Taper "heroku login" et cliquer sur Log In sur la page web qui s'est ouverte
-Taper la commande "heroku git:remote -a $name-app$"
-Enfin taper la commande "git push heroku master"
+
+## Autres livrables :
+
+Deux notebooks permettant de comprendre la démarche de preprocessing et du choix du modèle.
